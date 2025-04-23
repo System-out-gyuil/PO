@@ -64,7 +64,7 @@
 - NAVER Cloud platform에서 CLOVA OCR과 API Gateway 사용 가격 1개월에 35000 + 1건당 약 3원
 - 모든 데이터 잘 나타나며 기존 약 7개의 항목 모두 깔끔하게 나오는 것을 확인
 
-<img src="https://github-production-user-asset-6210df.s3.amazonaws.com/120631088/435992607-c48fbcd7-92d5-4bb3-b3c0-20610a09db92.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20250422%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20250422T085810Z&X-Amz-Expires=300&X-Amz-Signature=1249450162f994798e9d149f151d0df4eb51544fb7510f066aafc9fcde6910f7&X-Amz-SignedHeaders=host"/>
+<img src="./captures/json.png"/>
 
 ## HWP를 다루는 다른 방법 탐색
 
@@ -95,13 +95,13 @@
 <br><hr>
 
 - elasticsearch 적용 후 <br>
-<img src="https://github-production-user-asset-6210df.s3.amazonaws.com/120631088/436371879-c7524c79-a802-4b2d-8722-f274fbb9fb86.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20250423%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20250423T052053Z&X-Amz-Expires=300&X-Amz-Signature=799652a250975a751af8b5974f5f4aa7050bb6bc9d714d41d0cbecabb9bc2b0c&X-Amz-SignedHeaders=host" width="100%" height="60px"><br>
+<img src="./captures/before.png" width="100%" height="60px"><br>
 hallucination 현상이 해결되었으며, JSONL 파일의 실제 데이터를 잘 가져오는 것을 확인
 
 <br>
 
 - 가독성을 위해 formatter를 적용하여 
-<img src="https://github-production-user-asset-6210df.s3.amazonaws.com/120631088/436372867-f05d273e-1200-43c9-bded-4a130099cc55.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20250423%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20250423T052449Z&X-Amz-Expires=300&X-Amz-Signature=2f7f30cdc6aefef13b623e538f18f8bf2f77248797f269cf9478e3b098798779&X-Amz-SignedHeaders=host">
+<img src="./captures/formatting.png">
 깔끔하게 나오도록 하였음
 
 <br>
