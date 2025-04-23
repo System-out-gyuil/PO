@@ -1,61 +1,110 @@
 from langchain_openai import ChatOpenAI
-from PyPDF2 import PdfReader
-import olefile
-import win32com.client as win32
-import os
+from elasticsearch import Elasticsearch
 import json
-from tqdm import tqdm
-import pandas as pd
+from config import OPEN_AI_API_KEY
 
-base_url = "C:\\Users\\user\\OneDrive\\Desktop\\피오\\기업마당\\"
-api_key = ""
-result_list = []
-result_json = []
-for_excel = []
+# 🔑 API 키
+api_key = OPEN_AI_API_KEY
 
-#  경로 내 모든 파일 리스트 가져오기기
-file_list = os.listdir(base_url)
+# 🧑 사용자 입력
+user_input = "나는 경주에서 IT업을 하고있어, 나에게 필요한 국가 지원사업을 알려줘."
 
-for file_name in tqdm(file_list):
-    # 모든 파일 리스트에서 pdf 파일만 가져오기
-    if file_name.endswith(".pdf"):
-        # 파일 경로 생성
-        file_path = base_url + file_name
+# 🔍 Elasticsearch 연결
+es = Elasticsearch("http://localhost:9200", verify_certs=False)
+index_name = "support_projects"
 
-        # pdf 파일 읽기
-        pdfReader = PdfReader(file_path)
-        
-        user_input = "아래 내용을 다음 항목에 맞게 요약해줘. 지역, 가능업종(제조업, 서비스업, 요식업, IT, 도소매, 건설업, 무역업,운수업,농수산업,미디어,기타), 수출실적여부(예/아니요), 지원규모, 모집기간, 핵심키워드 5개,공고내용 300자 요약해서 json 형식으로 만들어줘줘 "
+# 📋 Function Calling 스펙 정의
+functions = [
+    {
+        "name": "get_support_info",
+        "description": "국가 지원사업 정보를 반환",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "공고명": {"type": "string"},
+                "지역": {"type": "string"},
+                "가능업종": {"type": "string"},
+                "수출실적여부": {"type": "string"},
+                "지원규모": {"type": "string"},
+                "모집기간": {"type": "string"},
+                "핵심키워드": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "minItems": 1,
+                    "maxItems": 5
+                },
+                "공고내용": {"type": "string"}
+            },
+            "required": ["공고명", "지역", "가능업종", "수출실적여부", "지원규모", "모집기간", "핵심키워드", "공고내용"]
+        }
+    }
+]
 
-        for page in pdfReader.pages:
-          user_input += page.extract_text()
+# 🔍 Elasticsearch 검색 함수
+def search_support_projects(user_query: str, top_k: int = 3):
+    query = {
+        "query": {
+            "match": {
+                "text": user_query
+            }
+        }
+    }
+    res = es.search(index=index_name, body=query, size=top_k)
+    return [hit["_source"]["text"] for hit in res["hits"]["hits"]]
 
-        llm = ChatOpenAI(
-            temperature=0,
-            model_name='gpt-4o-mini',
-            openai_api_key=api_key
-        )
+# 🧠 LLM 객체 생성 (GPT + Function Call)
+llm = ChatOpenAI(
+    temperature=0,
+    model_name='gpt-4o-mini',  # 또는 fine-tuned 모델
+    openai_api_key=api_key,
+    model_kwargs={
+        "functions": functions,
+        "function_call": {"name": "get_support_info"}
+    }
+)
 
-        response = llm.invoke(user_input)
-        print(response.content)
+# 1. 🔍 문서 검색
+retrieved_docs = search_support_projects(user_input)
 
-        result_list.append(response.content)
+# 2. 🔗 검색 결과를 context로 연결
+context = "\n\n".join(retrieved_docs)
 
-print(result_list[0])
+# 3. 🤖 GPT에 전달할 프롬프트 구성
+final_prompt = f"""
+사용자 조건: {user_input}
 
-for result in result_list:
-    
-    
-    result = result.replace("```json", "").replace("```", "").replace("\n", "").replace("\"", "").replace("   ", "")
+다음은 검색된 실제 지원사업입니다:
 
-    result_json.append({"messages" : [
-                        {"role" : "system", "content" : "너는 국가 지원사업 안내 전문가야. 지원사업의 다양한 내용을 안내할 수 있어야해."}, 
-                        # {"role" : "user", "content" : "나에게 필요한 국가 지원사업을 알려줘"},
-                        {"role" : "assistant", "content" : result}
-                      ]})
+{context}
 
-# print(result_json)
+위 정보를 참고해서 사용자에게 적절한 지원사업을 응답해줘.
+지역과 업종을 중점으로 찾아줘
+"""
 
-with open("C:\\Users\\user\\OneDrive\\Desktop\\피오\\json_test\\result10.json", 'w', encoding='utf-8') as f:
-    json.dump(result_json, f, indent=4, ensure_ascii=False)
+# 4. 🚀 GPT 호출
+response = llm.invoke(final_prompt)
 
+# 5. 🧾 JSON → 보기 좋은 자연어 변환 함수
+def format_result(raw_json: str):
+    parsed = json.loads(raw_json)
+    return f"""
+📢 지원사업 추천 정보
+
+📝 공고명: {parsed['공고명']}
+📍 지역: {parsed['지역']}
+🏭 업종: {parsed['가능업종']}
+🚢 수출 실적 여부: {parsed['수출실적여부']}
+💰 지원 규모: {parsed['지원규모']}
+📆 모집 기간: {parsed['모집기간']}
+🔑 핵심 키워드: {', '.join(parsed['핵심키워드'])}
+
+📄 공고 내용 요약:
+{parsed['공고내용']}
+"""
+
+# 6. 📤 결과 출력
+arguments = response.additional_kwargs.get("function_call", {}).get("arguments")
+if arguments:
+    print(format_result(arguments))
+else:
+    print("❗ 함수 호출 결과가 없습니다.")

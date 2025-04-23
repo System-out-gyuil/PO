@@ -29,8 +29,8 @@ for hwp_file_name in file_list:
         hwp_file = base_url + hwp_file_name
         pdf_output = base_url + hwp_file_name + ".pdf"
 
-        # HWP파일 PDF로 변환 함수수
+        # HWP파일 PDF로 변환 함수
         convert_hwp_to_pdf(hwp_file, pdf_output)
 
         # 변환 완료된 후 HWP파일 삭제 함수
-        # remove_hwp(hwp_file)
+        remove_hwp(hwp_file)
