@@ -10,8 +10,8 @@ from tqdm import tqdm
 import json
 from config import OPEN_AI_API_KEY
 
-base_url = "C:\\Users\\user\\OneDrive\\Desktop\\피오\\Train_data\\"
 api_key = OPEN_AI_API_KEY
+base_url = "C:\\Users\\user\\OneDrive\\Desktop\\피오\\Train_data\\"
 output_path = "C:\\Users\\user\\OneDrive\\Desktop\\피오\\json_test\\train_data_7.jsonl"
 
 file_list = os.listdir(base_url)

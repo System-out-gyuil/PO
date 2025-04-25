@@ -6,6 +6,9 @@ def convert_hwp_to_pdf(hwp_path, output_pdf_path):
     hwp = win32.gencache.EnsureDispatch("HWPFrame.HwpObject")  # 한글 프로그램 자동 실행
     hwp.XHwpWindows.Item(0).Visible = False  # 한글창 보이게 할지 (안 보이게 하려면 False)
 
+    # Register에 등록된 AutomationModule 사용
+    hwp.RegisterModule("FilePathCheckDLL", "AutomationModule")
+
     # 문서 열기 구문 - 보안 확인 없이 열기
     hwp.Open(hwp_path, "HWP", "forceopen:true")
     
@@ -27,7 +30,7 @@ for hwp_file_name in file_list:
     if hwp_file_name.endswith(".hwp"):
 
         hwp_file = base_url + hwp_file_name
-        pdf_output = base_url + hwp_file_name + ".pdf"
+        pdf_output = base_url + hwp_file_name.replace(".hwp", ".pdf")
 
         # HWP파일 PDF로 변환 함수
         convert_hwp_to_pdf(hwp_file, pdf_output)

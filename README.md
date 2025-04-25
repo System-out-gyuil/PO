@@ -1,3 +1,18 @@
+# 기술 스택
+
+- **Python** : AI 및 Elasticsearch와의 연동을 고려해 선택
+- **Django** : 서비스화, 로그인 및 기록 저장, 관리자 환경 제공 등 추후 확장성을 고려한 프레임워크
+- **MySQL** : Django ORM과의 높은 호환성, 관계형 DB 구조, 확장성과 무료 사용 가능성
+- **HTML / CSS / JS** : 웹 프론트엔드 구현을 위한 기본 기술
+- **React** : 사용자 친화적인 인터페이스 구현을 위한 프론트엔드 프레임워크
+- **Tailwind CSS** : 빠르고 효율적인 UI 스타일링을 위한 CSS 프레임워크
+- **Docker** : 개발 및 배포 환경 통일과 컨테이너 기반 배포를 위한 기술
+- **AWS** : 안정적인 서버 운영과 확장 가능한 인프라 구축
+- **Elasticsearch** : 사용자 질문에 대해 빠른 문서 검색을 위한 검색 엔진
+- **OpenAI API** : 검색된 문서를 바탕으로 자연어 요약 및 응답 생성을 위한 AI API
+
+<br>
+
 # 2025.04.22 (화)
 
 ## 1. JPG 및 HWP 파일 요약 데이터셋 제작
@@ -76,17 +91,19 @@
 <hr>
 
 # 2025.04.23 (수)
+
 ## 1. Open AI API GPT-3.5-turbo 모델 학습 및 테스트
 
-- GPT-4o-mini로 진행하려 하였으나 fine_tuning을 지원하지 않는 상태라 ``GPT-3.5-turbo 모델 사용``
+- GPT-4o-mini로 진행하려 하였으나 fine_tuning을 지원하지 않는 상태라 `GPT-3.5-turbo 모델 사용`
 - train 데이터 10개로 진행 결과 원하는 답을 하지 않아서 150개 데이터로 재진행
-- 재학습 결과 대답은 그럴싸하게 하지만 실제론 ``없는 데이터를 그럴싸하게 지어내는 문제 발생``(hallucination 현상)
+- 재학습 결과 대답은 그럴싸하게 하지만 실제론 `없는 데이터를 그럴싸하게 지어내는 문제 발생`(hallucination 현상)
 - hallucination 현상 방지를 위해 RAG 방식으로 진행
 
 ### elasticsearch docker 환경에서 설치 및 실행
+
 - docker pull docker.elastic.co/elasticsearch/elasticsearch:8.11.3
 - docker run -d --name elasticsearch -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "xpack.security.enabled=false" -e "xpack.security.http.ssl.enabled=false"
- docker.elastic.co/elasticsearch/elasticsearch:8.11.3
+  docker.elastic.co/elasticsearch/elasticsearch:8.11.3
 
 <br>
 
@@ -95,18 +112,19 @@
 <br><hr>
 
 - elasticsearch 적용 후 <br>
-<img src="./captures/before.png" width="100%" height="60px"><br>
-hallucination 현상이 해결되었으며, JSONL 파일의 실제 데이터를 잘 가져오는 것을 확인
+  <img src="./captures/before.png" width="100%" height="60px"><br>
+  hallucination 현상이 해결되었으며, JSONL 파일의 실제 데이터를 잘 가져오는 것을 확인
 
 <br>
 
-- 가독성을 위해 formatter를 적용하여 
-<img src="./captures/formatting.png">
-깔끔하게 나오도록 하였음
+- 가독성을 위해 formatter를 적용하여 <br>
+  <img src="./captures/formatting.png">
+  깔끔하게 나오도록 하였음
 
 <br>
 
 ### 흐름 요약
+
 ```text
 기존 openAI GPT 3.5 turbo 모델 fine tuning 계획을 바꿔서 RAG 방식 도입
 
@@ -126,3 +144,68 @@ GPT 4o mini 모델이 function call을 통해 정해진 형식으로 반환
 
 JSON 형식의 응답을 formatter를 통해 가독성 증가
 ```
+- 모델 학습 시 데이터 약 300개 가량 사용했는데 $3정도의 토큰 사용
+- 단순 입출력으론 금액이 $0.2 정도 소모로 거의 나가지 않는 것을 확인, 따라서 금액적으로도 굉장히 효율적일 것으로 예상
+
+## 2. HWP 파일 PDF로 자동 변환
+
+- 한글 2024버전 기준 변환 코드 실행 시 보안문제로 인해 보안설정에 동의한다는 팝업창이 계속 나타나서 HWP 파일 하나당 한번씩 눌러줬어야함
+
+- 검색결과 구버전은 보안 설정에서 해제가 가능하다는 글을 보고 2010, 2018 버전으로 시도해보았으나, 이번엔 파이썬과 호환이 안되는 문제가 있어서 다시 2024버전으로 변경한 뒤 Hancom Developer에 등록된 레지스트리를 통해 자체적으로 보안설정을 해제하여 해결함
+
+<br>
+
+# 2025.04.24 (목)
+## 1. HWP, PDF, IMG 전처리 코드 통합
+
+## 2. 데이터 정리 및 검증
+
+- 공고 내용 : 기존 300자에서 500자로
+- 공고 숫자가 계속 바뀌는 관계로 500번부터 현재 시점까지 다운. 추후 일별로 공고 업로드 진행
+- 신청 기간이 ~까지 만 있고 시작일이 없거나, 년도 없이 ~ 04.25까지 이런 경우를 확인 (GPT는 창작을 잘하기 때문)
+- 년도는 2025 고정하거나, 시작기간은 없이 진행
+- 정규화된 신청 종료 기간을 통해 기간이 지난 공고는 elasticsearch에서 필터링
+- 본문 자체에 오타가 있어서 시작기간 2025, 종료기간 2024 인 경우..
+- 지역이 무관인 경우도 고려해야함 ex) 성남에서 주최하지만 참가는 어디든 가능인 경우
+- openAI의 대답이 자꾸 이상한 원인 ex) "충북에서 제조업 하고있어" 라고 질문했을때 충북, 제조업 둘 중 하나만 해당해도 그 공고를 가져옴, 그리고 진짜 충북 + 제조업에 해당하는 데이터가 실제로 거의 없어서 문제 발생
+
+- 데이터의 개수, elasticsearch의 문제, OpenAI API의 문제인지 확인 필요
+
+- elasticsearch에 넣은 데이터가 json 구조가 아닌 jsonl의 문자열 구조이기때문에 es는 제대로 인식을 못하는 문제인듯함
+
+## 3. 웹세팅
+
+- 지역, 업종, 수출 여부, 직원 수 : 드랍박스 형식
+- 모바일 환경 위주로 UI/UX
+
+<br>
+
+
+지역, 업종, 수출여부, 직원수, 구글애드센스
+
+공고 약 500번부터 현재까지
+
+- 지역 : 전국 or 해당 자치구 명확하게 구분되어야 함.
+- 업종 : 제조, 요식업, 서비스업 등 중 모두 가능하다면 '제한없음' 여러업종이 가능하다면 여러개 출력 ex(제조업, IT)
+- 수출여부 : 수출기업 or 무관
+- 글자수 : 세부내용 요약 500자
+- 보여지는 공고문 : 가능한 공고 중에 마감 임박 순 10개 
+
+<br>
+
+# 2025.04.25 (금)
+## 1. JSON 구조 변경 및 Elasticsearch 활용
+
+- 기존 JSON은 OpenAI API 학습을 위해 해당 형식에 맞춰져 있어서 본문 내용이 문자열이라서 <br>
+elasticsearch에서 제대로 된 검색이 되지 않고 있었음 <br>
+이를 해결하기 위해 JSON의 구조를 변경하고 Key : value의 dict 형식으로 변환하니 검색이 원활해진 것을 확인하였음 <br>
+
+- 구조가 dict로 변했기 때문에 openai를 통해 추가 작업이 필요 없어짐 으로 인해 검색 속도 5배 이상 상승 및 비용 절감
+
+## 2. 검색 모델 프로토타입 제작 및 전체 데이터 인덱싱
+
+## 추후 검토해볼 사항
+
+- 일정 시간마다 크롤링 후 자동 데이터 추출 및 인덱싱 (데이터 수시로 추가 자동화)
+- 데이터에 양식 추가 고려 ex) 공고명, 지역, ... 지원 불가
+- 예외처리 추가
