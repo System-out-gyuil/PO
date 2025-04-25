@@ -22,7 +22,7 @@ api_key = OPEN_AI_API_KEY
 secret_key = NAVER_CLOUD_CLOVA_OCR_API_KEY
 api_url = NAVER_CLOUD_CLOVA_OCR_API_URL
 base_url = "C:\\Users\\user\\OneDrive\\Desktop\\피오\\기업마당\\"
-output_path = "C:\\Users\\user\\OneDrive\\Desktop\\피오\\json\\parsed_support_projects_3.json"
+output_path = "C:\\Users\\user\\OneDrive\\Desktop\\피오\\json\\2025_04_25_1313.json"
 
 # GPT LLM 세팅
 llm = ChatOpenAI(
