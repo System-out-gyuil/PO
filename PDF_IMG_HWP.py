@@ -11,6 +11,7 @@ from langchain_openai import ChatOpenAI
 import pdfplumber
 from tqdm import tqdm
 from datetime import datetime
+import shutil  # 추가
 import re
 
 # 경고 숨기기
@@ -21,8 +22,8 @@ logging.getLogger("PyPDF2").setLevel(logging.ERROR)
 api_key = OPEN_AI_API_KEY
 secret_key = NAVER_CLOUD_CLOVA_OCR_API_KEY
 api_url = NAVER_CLOUD_CLOVA_OCR_API_URL
-base_url = "C:\\Users\\user\\OneDrive\\Desktop\\피오\\기업마당\\"
-output_path = "C:\\Users\\user\\OneDrive\\Desktop\\피오\\json\\2025_04_25_1313.json"
+base_url = "C:\\Users\\user\\OneDrive\\Desktop\\po\\기업마당\\"
+output_path = "C:\\Users\\user\\OneDrive\\Desktop\\po\\Data_json\\2025_04_25_1313.json"
 
 # GPT LLM 세팅
 llm = ChatOpenAI(
@@ -91,7 +92,7 @@ def to_json(text, output_path):
         "수출실적여부(수출기업/무관), 지원규모, 모집기간을 분석해서 모집시작일과 모집종료일(yyyy-mm-dd),\n"
         "만약 모집 시작일이 없다면 비워두고, 모집 종료일의 년도가 없다면 2025로 고정해서 써줘.\n"
         "지원자격도 넣어줘.\n"
-        "핵심키워드 (5개 array)핵심 키워드엔 중소기업, 소상공인은 제외해줘, 공고내용 최대한 500자로 요약해줘.\n"
+        "핵심키워드 (5개 array)핵심 키워드엔 중소기업, 소상공인은 제외해줘, 공고내용 요약은 최대한 자세하게 써주고 500자에 가깝게 써줘 최소 450자 이상.\n"
         "정확히 JSON 형식으로 응답해줘.\n\n"
     ) + text
 
@@ -121,29 +122,40 @@ for file_name in tqdm(file_list):
         convert_hwp_to_pdf(hwp_path, pdf_output)
         remove_hwp(hwp_path)
 
+
 # 파일별 OCR 또는 PDF 텍스트 추출 후 요약
 for file_name in tqdm(os.listdir(base_url)):
     file_path = os.path.join(base_url, file_name)
     full_text = ""
 
-    if file_name.endswith(".png"):
-        response = clova_ocr(file_path, 'png')
-        for field in response.json()['images'][0]['fields']:
-            full_text += field['inferText']
+    try:
+        if file_name.endswith(".png"):
+            response = clova_ocr(file_path, 'png')
+            for field in response.json()['images'][0]['fields']:
+                full_text += field['inferText']
 
-    elif file_name.endswith(".jpg"):
-        response = clova_ocr(file_path, 'jpg')
-        for field in response.json()['images'][0]['fields']:
-            full_text += field['inferText']
+        elif file_name.endswith(".jpg"):
+            response = clova_ocr(file_path, 'jpg')
+            for field in response.json()['images'][0]['fields']:
+                full_text += field['inferText']
 
-    elif file_name.endswith(".pdf"):
-        with pdfplumber.open(file_path) as pdf:
-            for page in pdf.pages:
-                page_text = page.extract_text()
-                if page_text:
-                    full_text += page_text + "\n"
+        elif file_name.endswith(".pdf"):
+            with pdfplumber.open(file_path) as pdf:
+                for page in pdf.pages:
+                    page_text = page.extract_text()
+                    if page_text:
+                        full_text += page_text + "\n"
 
-    if full_text.strip():
-        to_json(full_text, output_path)
-    else:
-        print(f"❌ 텍스트 추출 실패: {file_name}")
+        if full_text.strip():
+            to_json(full_text, output_path)
+        else:
+            print(f"❌ 텍스트 추출 실패: {file_name}")
+
+    except Exception as e:
+        print(f"❌ 오류 발생, 파일 이동: {file_name}, 오류: {e}")
+        try:
+            error_dir = r"C:\Users\user\OneDrive\Desktop\po\오류"
+            os.makedirs(error_dir, exist_ok=True)  # 오류 폴더 없으면 생성
+            shutil.move(file_path, os.path.join(error_dir, file_name))
+        except Exception as move_error:
+            print(f"❌ 파일 이동 실패: {file_name}, 오류: {move_error}")

@@ -54,7 +54,7 @@ except Exception as e:
     print("❌ 인덱스 관련 오류:", e)
 
 # JSONL 파일 열기 및 업로드
-with open("C:/Users/user/OneDrive/Desktop/피오/json/parsed_support_projects_3.json", "r", encoding="utf-8") as f:
+with open("C:/Users/user/OneDrive/Desktop/po/Data_json/2025_04_25_1313.json", "r", encoding="utf-8") as f:
     for i, line in enumerate(f):
         try:
             data = json.loads(line)
